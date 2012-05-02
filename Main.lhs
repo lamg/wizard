@@ -14,14 +14,17 @@ Data definition and main functions
 
 > module Main where
 > import Data.List 
+> import System.Console.Haskeline
+
+
 
   Now I define the main function, which initializes the game 
 calling makeGameState and passing to repl, when repl ends it
 says bye.
 
 > main :: IO ()
-> main = do x <- repl makeGameState
->           putStr "bye\n"
+> main = do repl makeGameState
+>           return ()
 
   The repl function is recursive, it gets a state of play 
 (GameState), do some IO and returns a modified state, which is
@@ -30,15 +33,20 @@ The repl calls itself again with the modified state as parameter,
 for making the game continuous until the player enters "quit".
 
 > repl :: GameState -> IO GameState
-> repl s = do
->          gamePrint s
->          -- putStr ": " there is some lazy issue here (it seems)
->          -- when compiled ": " appears before in response.
->          x <- getLine
->          if x == "quit" then 
->            return s
->            else 
->               repl (gameEval s (words x)) 
+> repl s = runInputT defaultSettings (loop s)
+>           where 
+>             loop :: GameState -> InputT IO GameState         
+>             loop s = do
+>                       outputStrLn $ (gamePrint s)  
+>                       minput <- getInputLine "% "
+>                       case minput of
+>                             Nothing -> return s
+>                             Just "quit" -> return s
+>                             Just input -> loop 
+>                                              (gameEval s 
+>                                                     (words 
+>                                                        (maybe "help" id minput)))
+>                                               
 
   Now I define data structures for representing the world that 
 Cuco is able to interact with. PlayerState is a list of lists of
@@ -100,6 +108,7 @@ current place. In case of unrecognized action the noaction function
 is called. Currently majority of commands get two arguments.
 
 > gameEval :: GameState -> [String] -> GameState
+> gameEval state [] = help state ""
 > gameEval state [x] = gameEval state [x,getCurrentPlace (fst state)]
 > gameEval state [x,y] = (snd (maybe ("na" ,noaction) id  
 >                              (value x (actions))))
@@ -121,12 +130,12 @@ is called. Currently majority of commands get two arguments.
 [String] result of executing some command, and evaluates to the 
 parameter state.
 
-> gamePrint :: GameState -> IO GameState
-> gamePrint state = do mprint ((fst state) !! response)
->                      return state
+> gamePrint :: GameState -> String
+> gamePrint state =  mprint ((fst state) !! response)
+>                   
 >
-> mprint :: [String] -> IO ()
-> mprint msgs = seqn [putStr (x ++ ".\n") | x <- msgs]
+> mprint :: [String] -> String
+> mprint msgs = intercalate ".\n" msgs
 >   
 > seqn :: [IO a] -> IO ()                  
 > seqn [] = return ()
