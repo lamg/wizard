@@ -5,7 +5,7 @@ Introduction
  This is a little program for practicing my skills on Haskell.
 Is based on an example game of Land of Lisp, by Conrad Barski.
 Consist of a repl, where the player sends commands to Cuco, the 
-main charachter, for moving around in the world, looking ...
+main character, for moving around in the world, looking ...
 
 Data definition and main functions
 ==================================
@@ -15,8 +15,6 @@ Data definition and main functions
 > module Main where
 > import Data.List 
 > import System.Console.Haskeline
-
-
 
   Now I define the main function, which initializes the game 
 calling makeGameState and passing to repl, when repl ends it
@@ -126,9 +124,8 @@ is called. Currently majority of commands get two arguments.
 >            ("inventory", showInventory), ("drop", dropObject),
 >            ("help", help)]
 
-  The gamePrint function gets a state, prints the response, a 
-[String] result of executing some command, and evaluates to the 
-parameter state.
+  The gamePrint function gets a state, does some formatting, and 
+evaluates to a String result of executing some command.
 
 > gamePrint :: GameState -> String
 > gamePrint state =  mprint ((fst state) !! response)
@@ -136,11 +133,6 @@ parameter state.
 >
 > mprint :: [String] -> String
 > mprint msgs = intercalate ".\n" msgs
->   
-> seqn :: [IO a] -> IO ()                  
-> seqn [] = return ()
-> seqn (a:as) = do a
->                  seqn as
 
 Functions associated to game commands
 =====================================
@@ -232,7 +224,7 @@ Utility functions
 
   These functions are used by other as base.
 
-  Finds the node asociated to the place.
+  Finds the node associated to the place.
 
 > findPlace :: [Node] -> String -> Node                 
 > findPlace mp plc = maybe defaultNode id 
